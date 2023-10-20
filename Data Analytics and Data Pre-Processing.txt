@@ -1,0 +1,301 @@
+import numpy
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas
+%matplotlib inline
+plt.rcParams['figure.figsize'] = (16.0, 4.0)
+sns.set_style("whitegrid")
+numpy.random.seed(7)
+In [2]:
+data = pandas.read_csv('D:\Project\outbreaks.csv', index_col=[0])
+data.head()
+Out[2]:
+In [39]:
+plt.figure( figsize = (25,50))
+sns.countplot('State', data = data_u)  
+plt.show() 
+
+
+plt.show()
+
+In [9]:
+import os
+os.environ['KERAS_BACKEND']='theano'
+from keras.models import Sequential
+from keras.layers import Dense, Dropout
+from keras.wrappers.scikit_learn import KerasClassifier
+from sklearn import model_selection
+from sklearn.svm import SVC
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import confusion_matrix, roc_auc_score, matthews_corrcoef
+from sklearn.metrics import classification_report
+
+
+
+
+import pandas as pd
+df_Location = pd.get_dummies(data['Location'])
+df_Food = pd.get_dummies(data['Food'])
+df_Species = pd.get_dummies(data['Species'])
+df_Serotype = pd.get_dummies(data['Serotype/Genotype'])
+df_Status = pd.get_dummies(data['Status'])
+df_concat = pd.concat([data, df_Location, df_Food, df_Species, df_Serotype, df_Status ], axis=1)
+print (df_concat.head())
+In [11]:
+df_concat.head(20)
+Out[20 rows × 3761 columns
+In [12]:
+df_concat.drop(['Location', 'Food','Species','Serotype/Genotype','Status', 'Suspected'], inplace=True, axis=1)
+print (df_concat.head())					In [13]:
+df_concat.fillna(0)
+In [17]:
+df_concat.drop(df_concat.iloc[:, 6:3755], inplace = True, axis = 1)
+In [18]:
+df_concat.head(30)
+Out[18]:
+In [20]:
+#plots a bar graph showing food bourne disease are not deadly as their are minimal fatalities
+plt.figure( figsize = (25,15))
+sns.countplot('Fatalities', data = df_concat)  
+plt.show()     
+
+In [21]:
+df_concat.drop(['Ingredient','Month','State'], axis = 1, inplace = True)
+In [22]:
+df = df_concat.fillna(0)
+df.head(30)
+Out[22]:
+In [23]:
+from numpy import unique
+from numpy import where
+from sklearn.datasets import make_classification
+from sklearn.cluster import AffinityPropagation
+from matplotlib import pyplot
+X, _ = make_classification(n_samples=1000, n_features=2, n_informative=2, n_redundant=0, n_clusters_per_class=1, random_state=4)
+# define the model
+model = AffinityPropagation(damping=0.9)
+# fit the model
+model.fit(X)
+# assign a cluster to each example
+yhat = model.predict(X)
+# retrieve unique clusters
+clusters = unique(yhat)
+# create scatter plot for samples from each cluster
+for cluster in clusters:
+	# get row indexes for samples with this cluster
+	row_ix = where(yhat == cluster)
+	# create scatter of these samples
+	pyplot.scatter(X[row_ix, 0], X[row_ix, 1])
+# show the plot
+pyplot.show()
+In [24]:
+plt.figure(figsize=(5,1))
+sns.heatmap(df.corr(), annot=True, cmap='seismic_r', linewidths=.5)
+plt.show()
+
+In [25]:
+df.drop(['Fatalities'], axis = 1, inplace = True)
+# split into input (X) and output (Y) variables
+X = df.iloc[:,0:1].astype(float)
+Y = df.iloc[:,-1]
+
+import numpy
+import matplotlib.pyplot as plt
+import seaborn as sns
+import pandas
+from sklearn.preprocessing import MinMaxScaler
+scaler = MinMaxScaler(feature_range=(0, 1))
+X = scaler.fit_transform(X)
+In [26]:
+ test_size = 0.1
+X_train, X_test, Y_train, Y_test = model_selection.train_test_split(X, Y, test_size=test_size, random_state=7)
+In [29]:
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import SVC, LinearSVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import Perceptron
+from sklearn.linear_model import SGDClassifier
+from sklearn.tree import DecisionTreeClassifier
+random_forest = RandomForestClassifier(n_estimators=100)
+random_forest.fit(X_train, Y_train)
+ran_pred = random_forest.predict(X_test)
+random_forest.score(X_train, Y_train)
+acc_random_forest = round(random_forest.score(X_train, Y_train) * 100, 2)
+acc_random_forest
+In [30]:
+logreg = LogisticRegression() 
+logreg.fit(X_train, Y_train)
+log_pred = logreg.predict(X_test)
+acc_log = round(logreg.score(X_train, Y_train) * 100, 2)
+acc_log						       In [31]:
+svc = SVC()
+svc.fit(X_train, Y_train)
+svc_pred = svc.predict(X_test)
+acc_svc = round(svc.score(X_train, Y_train) * 100, 2)
+acc_svc
+Out[31]:
+78.81
+In [32]:
+knn = KNeighborsClassifier(n_neighbors = 3)
+knn.fit(X_train, Y_train)
+knn_pred = knn.predict(X_test)
+acc_knn = round(knn.score(X_train, Y_train) * 100, 2)
+acc_knn
+Out[32]:
+77.32
+In [33]:
+gaussian = GaussianNB()
+gaussian.fit(X_train, Y_train)
+gnb_pred = gaussian.predict(X_test)
+acc_gaussian = round(gaussian.score(X_train, Y_train) * 100, 2)
+acc_gaussian
+Out[33]:
+77.18
+In [34]:
+linear_svc = LinearSVC()
+linear_svc.fit(X_train, Y_train)
+lin_pred = linear_svc.predict(X_test)
+acc_linear_svc = round(linear_svc.score(X_train, Y_train) * 100, 2)
+acc_linear_svc
+Out[34]:
+78.78
+In [35]:
+sgd = SGDClassifier()
+sgd.fit(X_train, Y_train)
+sgd_pred = sgd.predict(X_test)
+acc_sgd = round(sgd.score(X_train, Y_train) * 100, 2)
+acc_sgd
+Out[35]:
+78.8
+In [36]:
+decision_tree = DecisionTreeClassifier()
+decision_tree.fit(X_train, Y_train)
+dec_pred = decision_tree.predict(X_test)
+acc_decision_tree = round(decision_tree.score(X_train, Y_train) * 100, 2)
+acc_decision_tree
+Out[36]:
+79.13
+In [37]:
+models = pd.DataFrame({
+    'Model': ['Support Vector Machines', 'KNN', 'Logistic Regression', 
+              'Random Forest', 'Naive Bayes', 
+              'Stochastic Gradient Decent', 'Linear SVC', 
+              'Decision Tree'],
+    'Score': [acc_svc, acc_knn, acc_log, 
+              acc_random_forest, acc_gaussian, 
+              acc_sgd, acc_linear_svc, acc_decision_tree]})
+models.sort_values(by='Score', ascending=False)
+Out[37]:
+model = SVC()
+model = KNeighborsClassifier()
+model = GaussianNB()
+model = LinearDiscriminantAnalysis()
+model = LogisticRegression()
+model.fit(X_train, Y_train)
+predicted = model.predict(X_test)
+matrix = confusion_matrix(Y_test, predicted)
+print(matrix)
+from sklearn.metrics import classification_report, matthews_corrcoef, accuracy_score
+
+report = classification_report(Y_test, predicted)
+ [33]:
+from sklearn.model_selection import cross_val_predict, cross_val_score
+from sklearn.metrics import confusion_matrix,classification_report,accuracy_score
+In [34]:
+def print_score(classifier,X_train,Y_train,X_test,Y_test,train=True):
+    if train == True:
+        print("Training results:\n")
+        print('Accuracy Score: {0:.4f}\n'.format(accuracy_score(Y_train,classifier.predict(X_train))))
+        print('Classification Report:\n{}\n'.format(classification_report(Y_train,classifier.predict(X_train))))
+        print('Confusion Matrix:\n{}\n'.format(confusion_matrix(Y_train,classifier.predict(X_train))))
+        res = cross_val_score(classifier, X_train, Y_train, cv=10, n_jobs=-1, scoring='accuracy')
+        print('Average Accuracy:\t{0:.4f}\n'.format(res.mean()))
+        print('Standard Deviation:\t{0:.4f}'.format(res.std()))
+    elif train == False:
+        print("Test results:\n")
+        print('Accuracy Score: {0:.4f}\n'.format(accuracy_score(Y_test,classifier.predict(X_test))))
+        print('Classification Report:\n{}\n'.format(classification_report(Y_test,classifier.predict(X_test))))
+        print('Confusion Matrix:\n{}\n'.format(confusion_matrix(Y_test,classifier.predict(X_test))))
+In [35]:
+from sklearn.linear_model import LogisticRegression
+classifier = LogisticRegression()
+
+classifier.fit(X_train,Y_train)
+Out[35]:
+LogisticRegression(C=1.0, class_weight=None, dual=False, fit_intercept=True,
+                   intercept_scaling=1, l1_ratio=None, max_iter=100,
+                   multi_class='auto', n_jobs=None, penalty='l2',
+                   random_state=None, solver='lbfgs', tol=0.0001, verbose=0,
+                   warm_start=False)
+In [36]:
+print_score(classifier,X_train,Y_train,X_test,Y_test,train=True)
+
+Training results:
+
+Accuracy Score: 0.7904
+
+Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.79      1.00      0.88     10579
+         1.0       0.00      0.00      0.00      1290
+         2.0       0.00      0.00      0.00       582
+         3.0       0.00      0.00      0.00       291
+         4.0       0.00      0.00      0.00       164
+         5.0       0.00      0.00      0.00       115
+         6.0       0.00      0.00      0.00        79
+         7.0       0.00      0.00      0.00        49
+         8.0       0.00      0.00      0.00        42
+         9.0       0.00      0.00      0.00        24
+        10.0       0.00      0.00      0.00        20
+
+    accuracy                           0.79     13383
+   macro avg       0.01      0.02      0.02     13383
+weighted avg       0.62      0.79      0.70     13383
+
+
+Confusion Matrix:
+[[10578     0     1 ...     0     0     0]
+ [ 1290     0     0 ...     0     0     0]
+ [  582     0     0 ...     0     0     0]]
+
+Average Accuracy:	0.7904
+
+Standard Deviation:	0.0004
+In [37]:
+print_score(classifier,X_train,Y_train,X_test,Y_test,train=False)
+
+Test results:
+
+Accuracy Score: 0.7821
+
+Classification Report:
+              precision    recall  f1-score   support
+
+         0.0       0.78      1.00      0.88      4485
+         1.0       1.00      0.00      0.00       596
+         2.0       0.00      0.00      0.00       262
+         3.0       0.00      0.00      0.00       131
+         4.0       0.00      0.00      0.00        65
+         5.0       0.00      0.00      0.00        44
+         6.0       0.00      0.00      0.00        27
+         7.0       0.00      0.00      0.00        26
+         8.0       0.00      0.00      0.00        11
+         9.0       0.00      0.00      0.00        11
+        10.0       0.00      0.00      0.00        16
+
+
+    accuracy                           0.78      5736
+   macro avg       0.05      0.03      0.02      5736
+weighted avg       0.72      0.78      0.69      5736
+
+
+Confusion Matrix:
+[[4485    0    0 ...    0    0    0]
+ [ 595    1    0 ...    0    0    0]
+ [ 262    0    0 ...    0    0    0]]

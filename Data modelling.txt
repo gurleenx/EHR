@@ -1,0 +1,110 @@
+from math import floor
+def partition(vector, fold, k):
+
+    size = vector.shape[0]
+
+    start = floor((size/k)*fold)
+
+    end = floor((size/k)*(fold+1))
+
+    validation = vector[start:end]
+    
+    #print(str(type(vector)))
+
+    if str(type(vector)) == "<class 'scipy.sparse.csr.csr_matrix'>":
+
+        indices = range(start, end)
+
+        mask = numpy.ones(vector.shape[0], dtype=bool)
+
+        mask[indices] = False
+
+        training = vector[mask]
+
+    elif str(type(vector)) == "<class 'numpy.ndarray'>":
+        
+        training = numpy.concatenate((vector[:start], vector[end:]))
+
+    return training, validation
+
+
+
+def Cross_Validation(learner, k, examples, labels):
+
+    train_folds_score = []
+
+    validation_folds_score = []
+    
+    test_score_auc = []
+    
+    test_score_mcc = []
+
+    for fold in range(0, k):
+
+        training_set, validation_set = partition(examples, fold, k)
+
+        training_labels, validation_labels = partition(labels, fold, k)
+
+        learner.fit(training_set, training_labels)
+
+        training_predicted = learner.predict(training_set)
+
+        validation_predicted = learner.predict(validation_set)
+        
+        test_predicted = learner.predict(X_test)
+
+        train_folds_score.append(roc_auc_score(training_labels, training_predicted))
+
+        validation_folds_score.append(roc_auc_score(validation_labels, validation_predicted))
+        
+        test_score_auc.append(roc_auc_score(Y_test, test_predicted))
+        
+        test_score_mcc.append(matthews_corrcoef(Y_test, test_predicted))
+
+    return train_folds_score, validation_folds_score, test_score_auc, test_score_mcc
+In [23]:
+def run(model) :
+    train_scores, validation_scores, test_scores_auc, test_scores_mcc = Cross_Validation(model, 10, X_test, Y_test)
+    #print(train_scores, validation_scores, test_scores)
+    print(model)
+    print('Train AUC', float(format(numpy.mean(train_scores), '.3f')))
+    print('Validation AUC',float(format(numpy.mean(validation_scores), '.3f')))
+    print('Test AUC',float(format(numpy.mean(test_scores_auc), '.3f')))
+    print('Test MCC',float(format(numpy.mean(test_scores_mcc), '.3f')))
+    print()
+In [25]:
+model = Sequential()
+model.add(Dense(256, input_dim=1, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(256, activation='relu'))
+model.add(Dropout(0.5))
+model.add(Dense(1, activation='sigmoid'))
+
+model.compile(loss='binary_crossentropy',
+              optimizer='adam',
+              metrics=['accuracy'])
+In [ ]:
+history = model.fit(X_train, Y_train, epochs=100, batch_size=4, verbose=1, validation_split=0.1)
+Train on 15486 samples, validate on 1721 samples
+Epoch 1/100
+15486/15486 [==============================] - 55912s 4s/step - loss: 0.1537 - accuracy: 0.1620 - val_loss: 0.2512 - val_accuracy: 0.0924
+Epoch 2/100
+15486/15486 [==============================] - 20376s 1s/step - loss: -0.9542 - accuracy: 0.2514 - val_loss: -0.9563 - val_accuracy: 0.5793
+Epoch 3/100
+15486/15486 [==============================] - 22259s 1s/step - loss: -2.5810 - accuracy: 0.3733 - val_loss: -0.8726 - val_accuracy: 0.0924
+Epoch 4/100
+15486/15486 [==============================] - 19561s 1s/step - loss: -3.0549 - accuracy: 0.4407 - val_loss: -1.1454 - val_accuracy: 0.0924
+Epoch 5/100
+15486/15486 [==============================] - 24930s 2s/step - loss: -3.2108 - accuracy: 0.4725 - val_loss: -1.4446 - val_accuracy: 0.5677
+Epoch 6/100
+15486/15486 [==============================] - 20879s 1s/step - loss: -3.3477 - accuracy: 0.5033 - val_loss: -1.3890 - val_accuracy: 0.6165
+Epoch 7/100
+15486/15486 [==============================] - 20974s 1s/step - loss: -3.3401 - accuracy: 0.5138 - val_loss: -1.3531 - val_accuracy: 0.6450
+Epoch 8/100
+15486/15486 [==============================] - 19218s 1s/step - loss: -3.3214 - accuracy: 0.5265 - val_loss: -1.4889 - val_accuracy: 0.5491
+Epoch 9/100
+15486/15486 [==============================] - 14305s 924ms/step - loss: -3.2661 - accuracy: 0.5303 - val_loss: -1.4542 - val_accuracy: 0.6049
+Epoch 10/100
+15486/15486 [==============================] - 21324s 1s/step - loss: -3.4066 - accuracy: 0.5426 - val_loss: -1.3945 - val_accuracy: 0.6374
+Epoch 11/100
+15486/15486 [==============================] - 23875s 2s/step - loss: -3.4112 - accuracy: 0.5447 - val_loss: -1.4849 - val_accuracy: 0.5793
